@@ -17,7 +17,8 @@ var Ulam = (function(){
             var sideCounterRide = 1; // 2辺で方向を転換する
 
             var counter = 1; //検証する値
-            while(sideCounter < canvasSize){
+            for(var i=0;i<requestSize;i++){
+//            while(sideCounter < canvasSize){ // this is same domain.
                 var f = isPrimeObject(counter).type;
                 if(f === true){
                     draw1pixelBlack(currentX, currentY);
@@ -46,6 +47,20 @@ var Ulam = (function(){
                     }
                 }
             }
+        }
+        var getPrimeNumberArray = function(length){
+            var result = [],
+                i = 0;
+            for(i=0;i<length;i++){
+                var judge = isPrimeObject(i);
+                if(judge.type === true){
+                    result[i] = true;
+                }else{
+                    result[i] = false;
+                }
+            }
+            return result;
+        
         }
         var getSideLength = function(n){
             var result = Math.sqrt(n);
