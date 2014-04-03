@@ -6,11 +6,15 @@
     <script type="text/javascript" src="./ulam.js"></script>
     <script type="text/javascript">
     window.onload = function(){
-        Ulam.init(20000);
+//        Ulam.init(10000);
     }
     </script>
 </head>
 <body>
+<div>
+    <input type="text" value="10000" id="num" />
+    <input type="button" value="run" id="run" onClick="Ulam.init(document.getElementById('num').value)" />
+</div>
     
 </body>
 </html>

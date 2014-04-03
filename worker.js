@@ -1,7 +1,5 @@
 importScripts("ulam.js");
-
 var getPrimeNumberArray = Ulam.initWorker();
-
 var sendMessage = function(type, param){
     if(typeof param !== "undefined"){
         self.postMessage({
@@ -14,7 +12,6 @@ var sendMessage = function(type, param){
         });
     }
 };
-
 self.addEventListener("message", function(e){
         var data = e.data;
         if(!data.type){
@@ -26,10 +23,8 @@ self.addEventListener("message", function(e){
             console.log(getPrimeNumberArray);
             var result = getPrimeNumberArray(param);
             sendMessage("returnPrimeNumberArray", result);
-
             break;
             throw "unknown event:" + data.type;
         }
 });
-
 

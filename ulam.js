@@ -67,7 +67,7 @@ var Ulam = (function(){
                 return result;
             }
             var getPrimeNumberArrayByWorker = function(length, resolve){
-                console.log("run in worker");
+                console.log("run worker");
                 var result = [];
                 var worker = new Worker(WORKER_FILENAME);
                 worker.addEventListener('message', function(e){
@@ -76,7 +76,6 @@ var Ulam = (function(){
                             throw "data.type no there !: " * data.type;
                         }
                         switch(data.type){
-                            //正常に生成が終了
                             case "returnPrimeNumberArray":
                             console.log("[Worker]calc is end.");
                             result = data.param;
@@ -110,7 +109,6 @@ var Ulam = (function(){
                 }
                 return result;
             }
-            //素数判定する
             var isPrimeObject = function(n){
                 var type = true, 
                     factorArray = [];
@@ -132,28 +130,20 @@ var Ulam = (function(){
                 getPrimeNumberArray: getPrimeNumberArray
             }
     })();
-
     var init = function(requestSize){
         var sideLength = getSideLength(requestSize);
         CanvasEntity.setCanvasSideSize(sideLength);
-
-//        var primeNumberArray = Utils.getPrimeNumberArray(requestSize);
-//        drawulam(primeNumberArray);
-
         var primeNumberArray;
         var p1 = new Promise(function(resolve){
-                console.log("promise start");
                 primeNumberArray = Utils.getPrimeNumberArray(requestSize, resolve);
         });
-
         p1.then(function fulfilled(primeNumberArray){
                 console.log("fulfilled");
                 drawUlam(primeNumberArray);
         }, 
         function rejected(e){
             console.log("rejected");
-    
-    });
+        });
     }
     var initWorker = function(){
         var isWorker = !!self.importScripts;
@@ -172,7 +162,6 @@ var Ulam = (function(){
         var sideCounter = 2; // 現在の一辺の最長
         var currentSideCounter = 1; //現在の一辺の消費数
         var sideCounterRide = 1; // 2辺で方向を転換する
-
         var l = primeArray.length;
         for(var i=1;i<l;i++){
             if(primeArray[i] === true){
@@ -189,7 +178,6 @@ var Ulam = (function(){
                 currentY += 1;
             }
             currentSideCounter += 1;
-
             //方向の転換
             if(currentSideCounter >= sideCounter){
                 vecType += 1;
