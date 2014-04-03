@@ -52,21 +52,21 @@ var Ulam = (function(){
             }
     })();
     var Utils = (function(){
-            var getPrimeNumberArray = function(length){
+            var getPrimeNumberArray = function(length, resolve){
                 var result = [];
                 var isWorker = !!self.importScripts;
                 if(isWorker){
-                    result = getPrimeNumberArrayNotWorker(length);
+                    result = getPrimeNumberArrayNotWorker(length, resolve);
                 }else{
                     if(window.Worker && false){
-                        result = getPrimeNumberArrayByWorker(length);
+                        result = getPrimeNumberArrayByWorker(length, resolve);
                     }else{
-                        result = getPrimeNumberArrayNotWorker(length);
+                        result = getPrimeNumberArrayNotWorker(length, resolve);
                     }
                 }
                 return result;
             }
-            var getPrimeNumberArrayByWorker = function(length){
+            var getPrimeNumberArrayByWorker = function(length, resolve){
                 console.log("run in worker");
                 var result = [];
                 var worker = new Worker(WORKER_FILENAME);
@@ -80,7 +80,7 @@ var Ulam = (function(){
                             case "returnPrimeNumberArray":
                             console.log("[Worker]calc is end.");
                             result = data.param;
-                            return result;
+                            resolve(result);
                             break;
                             default:
                             console.log("[Worker]unknown event type: " + data.type);
@@ -94,7 +94,7 @@ var Ulam = (function(){
                     worker.terminate();
                 }
             }
-            var getPrimeNumberArrayNotWorker = function(length){
+            var getPrimeNumberArrayNotWorker = function(length, resolve){
                 var result = [];
                 var i = 0;
                 for(i=0;i<length;i++){
@@ -104,6 +104,9 @@ var Ulam = (function(){
                     }else{
                         result[i] = false;
                     }
+                }
+                if(resolve){
+                resolve(result);
                 }
                 return result;
             }
@@ -140,14 +143,17 @@ var Ulam = (function(){
         var primeNumberArray;
         var p1 = new Promise(function(resolve){
                 console.log("promise start");
-                primeNumberArray = Utils.getPrimeNumberArray(requestSize);
-                resolve();
+                primeNumberArray = Utils.getPrimeNumberArray(requestSize, resolve);
         });
 
-        p1.then(function(){
-                console.log("then");
+        p1.then(function fulfilled(primeNumberArray){
+                console.log("fulfilled");
                 drawUlam(primeNumberArray);
-        });
+        }, 
+        function rejected(e){
+            console.log("rejected");
+    
+    });
     }
     var initWorker = function(){
         var isWorker = !!self.importScripts;
