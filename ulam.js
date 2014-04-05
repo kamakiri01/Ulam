@@ -6,7 +6,8 @@ var Ulam = (function(){
             var canvas = null;
             var canvasSideSize = 0;
             var getIsCanvas = function(){
-                return isCanvas}
+                return isCanvas
+            }
             var setIsCanvas = function(param){
                 isCanvas = param;
             }
@@ -26,8 +27,11 @@ var Ulam = (function(){
             }
             var setCanvasSideSize = function(param){
                 canvasSideSize = Math.round(param);
+                if(isCanvas === true){
+                    canvas = createCanvas();
+                }
             }
-            var createCanvas = function(n){
+            var createCanvas = function(){
                 if(canvasSideSize === 0){
                     console.log("canvasSide is undefined.");
                 }
@@ -51,17 +55,19 @@ var Ulam = (function(){
                 setCanvasSideSize: setCanvasSideSize
             }
     })();
-    var Utils = (function(){
+    var UtilsPrime = (function(){
             var getPrimeNumberArray = function(length, resolve){
                 var result = [];
                 var isWorker = !!self.importScripts;
                 if(isWorker){
-                    result = getPrimeNumberArrayNotWorker(length, resolve);
+                    result = getPrimeNumberArrayNotWorker(length);
                 }else{
-                    if(window.Worker && false){
+                    UtilsTimer.setStartCalculationPrime();
+                    if(window.Worker){
                         result = getPrimeNumberArrayByWorker(length, resolve);
                     }else{
                         result = getPrimeNumberArrayNotWorker(length, resolve);
+                        UtilsTimer.setEndCalculationPrime();
                     }
                 }
                 return result;
@@ -79,6 +85,7 @@ var Ulam = (function(){
                             case "returnPrimeNumberArray":
                             console.log("[Worker]calc is end.");
                             result = data.param;
+                            UtilsTimer.setEndCalculationPrime();
                             resolve(result);
                             break;
                             default:
@@ -105,7 +112,8 @@ var Ulam = (function(){
                     }
                 }
                 if(resolve){
-                resolve(result);
+                    UtilsTimer.setEndCalculationPrime();
+                    resolve(result);
                 }
                 return result;
             }
@@ -130,16 +138,59 @@ var Ulam = (function(){
                 getPrimeNumberArray: getPrimeNumberArray
             }
     })();
+    var UtilsTimer = (function(){
+        var startCalculationPrime = null;
+        var endCalculationPrime = null;
+        var startDrawCanvas = null;
+        var endDrawCanvas = null;
+        var setStartCalculationPrime = function(){
+            startCalculationPrime = new Date();
+        }
+        var setEndCalculationPrime = function(){
+            endCalculationPrime = new Date();
+        }
+        var setStartDrawCanvas = function(){
+            startDrawCanvas = new Date();
+        }
+        var setEndDrawCanvas = function(){
+            endDrawCanvas = new Date();
+        }
+        var measureCalculationPrime = function(){
+            var result = endCalculationPrime - startCalculationPrime;
+            return result;
+        }
+        var measureDrawCanvas = function(){
+            var result = endDrawCanvas - startDrawCanvas;
+            return result;
+        }
+        var getMeasureResult = function(){
+            var primeResult = measureCalculationPrime();
+            var drawResult = measureDrawCanvas();
+            return {
+                prime: primeResult,
+                draw: drawResult
+            }
+        }
+        return {
+            setStartCalculationPrime: setStartCalculationPrime,
+            setEndCalculationPrime: setEndCalculationPrime,
+            setStartDrawCanvas: setStartDrawCanvas,
+            setEndDrawCanvas: setEndDrawCanvas,
+            getMeasureResult: getMeasureResult
+        }
+    })();
     var init = function(requestSize){
         var sideLength = getSideLength(requestSize);
         CanvasEntity.setCanvasSideSize(sideLength);
         var primeNumberArray;
         var p1 = new Promise(function(resolve){
-                primeNumberArray = Utils.getPrimeNumberArray(requestSize, resolve);
+                primeNumberArray = UtilsPrime.getPrimeNumberArray(requestSize, resolve);
         });
         p1.then(function fulfilled(primeNumberArray){
                 console.log("fulfilled");
                 drawUlam(primeNumberArray);
+                var timeResult = UtilsTimer.getMeasureResult();
+                console.log(timeResult);
         }, 
         function rejected(e){
             console.log("rejected");
@@ -151,7 +202,7 @@ var Ulam = (function(){
         if(!isWorker){
             console.log("run this method at worker or inline worker by BlobBuilder.");
         }else{
-            result = Utils.getPrimeNumberArray;
+            result = UtilsPrime.getPrimeNumberArray;
         }
         return result;
     }
@@ -163,6 +214,9 @@ var Ulam = (function(){
         var currentSideCounter = 1; //現在の一辺の消費数
         var sideCounterRide = 1; // 2辺で方向を転換する
         var l = primeArray.length;
+
+        UtilsTimer.setStartDrawCanvas();
+
         for(var i=1;i<l;i++){
             if(primeArray[i] === true){
                 draw1pixelBlack(currentX, currentY);
@@ -188,6 +242,7 @@ var Ulam = (function(){
                 }
             }
         }
+        UtilsTimer.setEndDrawCanvas();
     }
     var getSideLength = function(n){
         var result = Math.sqrt(n);

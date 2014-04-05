@@ -20,7 +20,6 @@ self.addEventListener("message", function(e){
         switch(data.type){
             case "requestPrimeNumberArray":
             var param = data.param;
-            console.log(getPrimeNumberArray);
             var result = getPrimeNumberArray(param);
             sendMessage("returnPrimeNumberArray", result);
             break;
