@@ -104,9 +104,13 @@ var Ulam = (function(){
                 var result = [];
                 var i = 0;
                 for(i=0;i<length;i++){
-                    var judge = isPrimeObject(i);
-                    if(judge.type === true){
-                        result[i] = true;
+                    if(i%2 === 1){
+                        var judge = isPrimeObject(i);
+                        if(judge.type === true){
+                            result[i] = true;
+                        }else{
+                            result[i] = false;
+                        }
                     }else{
                         result[i] = false;
                     }
@@ -123,7 +127,7 @@ var Ulam = (function(){
                 if(n === 0 || n === 1 || n === 2){
                     type = true;
                 }
-                for(i=2;i<=n/2;i++){
+                for(i=3;i<=n/2;i+=2){
                     if(n%i === 0){
                         type = false;
                         factorArray.push(i);
