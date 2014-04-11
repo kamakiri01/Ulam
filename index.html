@@ -5,14 +5,18 @@
     <title></title>
     <script type="text/javascript" src="./ulam.js"></script>
     <script type="text/javascript">
-    window.onload = function(){
-//        Ulam.init(10000);
-    }
+        window.onload = function(){
+            var s = document.getElementById("form-text-workers");
+            for(var i=0;i<16;i++){
+                s.options[i] = new Option(i+1, i+1);
+            }
+        }
     </script>
 </head>
 <body>
 <div>
     <input type="text" value="10000" id="num" />
+    worker: <select  name="fontChoices" id="form-text-workers" size="1">
     <input type="button" value="run" id="run" onClick="Ulam.init(document.getElementById('num').value)" />
 </div>
     

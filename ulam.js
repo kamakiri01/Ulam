@@ -1,5 +1,3 @@
-var WORKER_FILENAME = "worker.js";
-
 var Ulam = (function(){
         var CanvasEntity = (function(){
             var isCanvas = false;
@@ -56,25 +54,90 @@ var Ulam = (function(){
             }
     })();
     var UtilsPrime = (function(){
-            var getPrimeNumberArray = function(length, resolve){
+            var requestSize = 0;
+            var isWorker = !!self.importScripts;
+            var getRequestSize = function(){
+                return requestSize;
+            }
+            var getPrimeNumberArrayFromMainThread = function(detectLength, resolve){
                 var result = [];
-                var isWorker = !!self.importScripts;
-                if(isWorker){
-                    result = getPrimeNumberArrayNotWorker(length);
+                requestSize = detectLength;
+                UtilsTimer.setStartCalculationPrime();
+                if(window.Worker){
+                    result = getPrimeNumberArrayFromMainThreadEnableWorker(detectLength, resolve);
                 }else{
-                    UtilsTimer.setStartCalculationPrime();
-                    if(window.Worker){
-                        result = getPrimeNumberArrayByWorker(length, resolve);
+                    result = getPrimeNumberArrayFromMainThreadDisableWorker(detectLength, resolve);
+                    UtilsTimer.setEndCalculationPrime();
+                }
+                return result;
+            }
+            var getPrimeNumberArrayFromWorkerThread = function(detectLength, currentTolerance, maxTolerance ){
+                var result = getPrimeNumberArrayEntity(detectLength, currentTolerance, maxTolerance);
+                return result;
+            }
+            var getPrimeNumberArrayFromMainThreadEnableWorker = function(detectLength, resolve){
+                var workerCount = document.getElementById("form-text-workers").value || 1;
+                var result = getPrimeNumberArrayByWorkers(detectLength, resolve, workerCount);
+                return result;
+            }
+            var getPrimeNumberArrayFromMainThreadDisableWorker = function(detectLength, resolve){
+                var result = getPrimeNumberArrayEntity(detectLength, 1, 1);
+                UtilsTimer.setEndCalculationPrime();
+                resolve(result);
+                return result;
+            }
+            var getPrimeNumberArrayEntity = function(detectLength, currentTolerance, maxTolerance){
+                var result = [];
+                for(var i=1+currentTolerance;i<detectLength;i+=1*maxTolerance){
+                    if(i%2 === 0){
+                        //nothing
+                    }else if(i === 0 || i === 1 || i === 2 || i === 3){
+                        result.push(i);
                     }else{
-                        result = getPrimeNumberArrayNotWorker(length, resolve);
-                        UtilsTimer.setEndCalculationPrime();
+                        var judge = isPrimeObject(i);
+                        if(judge.type === true){
+                            result.push(i);
+                        }else{
+                            //nothing
+                        }
                     }
                 }
                 return result;
             }
-            var getPrimeNumberArrayByWorker = function(length, resolve){
+            var getPrimeNumberArrayByWorkers = function(detectLength, resolve, workerCount){
+            var resultPrimeArray = [];
+                var finishedWorker = 0;
+                var checkIdEndDetect = function(resultArray){
+                    console.log("checkIdEndDetectworker" + finishedWorker);
+                    resultPrimeArray = resultPrimeArray.concat(resultArray);
+                    finishedWorker += 1;
+                    if(finishedWorker >= l){
+                        resultPrimeArray.sort(
+                            function(a,b){
+                                if( a < b ) return -1;
+                                if( a > b ) return 1;
+                                return 0;
+                            }
+                        );
+                        UtilsTimer.setEndCalculationPrime();
+                        resolve(resultPrimeArray);
+                    }
+                }
                 console.log("run worker");
                 var result = [];
+                var workers = [];
+                var l = workerCount || 1;
+                for(var i=0;i<l;i++){
+                    workers[i] = setUpWorkerDetectPrime(detectLength, i, l, checkIdEndDetect);
+                }
+                window.onbeforeunload = function(){
+                    for(var i=0;i<workers.detectLength;i++){
+                        workers[i].terminate();
+                    }
+                }
+            }
+            var setUpWorkerDetectPrime = function(detectLength, tolerance, maxTolerance, callback){
+                var WORKER_FILENAME = "worker.js";
                 var worker = new Worker(WORKER_FILENAME);
                 worker.addEventListener('message', function(e){
                         var data = e.data;
@@ -85,8 +148,7 @@ var Ulam = (function(){
                             case "returnPrimeNumberArray":
                             console.log("[Worker]calc is end.");
                             result = data.param;
-                            UtilsTimer.setEndCalculationPrime();
-                            resolve(result);
+                            callback(result);
                             break;
                             default:
                             console.log("[Worker]unknown event type: " + data.type);
@@ -94,32 +156,13 @@ var Ulam = (function(){
                 });
                 worker.postMessage({
                         type: "requestPrimeNumberArray",
-                        param: length
-                });
-                window.onbeforeunload = function(){
-                    worker.terminate();
-                }
-            }
-            var getPrimeNumberArrayNotWorker = function(length, resolve){
-                var result = [];
-                var i = 0;
-                for(i=0;i<length;i++){
-                    if(i%2 === 1){
-                        var judge = isPrimeObject(i);
-                        if(judge.type === true){
-                            result[i] = true;
-                        }else{
-                            result[i] = false;
+                        param: {
+                            tolerance: tolerance,
+                            maxTolerance: maxTolerance,
+                            detectLength: detectLength
                         }
-                    }else{
-                        result[i] = false;
-                    }
-                }
-                if(resolve){
-                    UtilsTimer.setEndCalculationPrime();
-                    resolve(result);
-                }
-                return result;
+                });
+                return worker;
             }
             var isPrimeObject = function(n){
                 var type = true, 
@@ -138,8 +181,16 @@ var Ulam = (function(){
                     factor: factorArray
                 };
             }
-            return {
-                getPrimeNumberArray: getPrimeNumberArray
+            if(isWorker){
+                return {
+                    getRequestSize: getRequestSize,
+                    getPrimeNumberArrayFromWorkerThread: getPrimeNumberArrayFromWorkerThread
+                }
+            }else{
+                return {
+                    getRequestSize: getRequestSize,
+                    getPrimeNumberArrayFromMainThread: getPrimeNumberArrayFromMainThread
+                }
             }
     })();
     var UtilsTimer = (function(){
@@ -188,7 +239,7 @@ var Ulam = (function(){
         CanvasEntity.setCanvasSideSize(sideLength);
         var primeNumberArray;
         var p1 = new Promise(function(resolve){
-                primeNumberArray = UtilsPrime.getPrimeNumberArray(requestSize, resolve);
+                primeNumberArray = UtilsPrime.getPrimeNumberArrayFromMainThread(requestSize, resolve);
         });
         p1.then(function fulfilled(primeNumberArray){
                 console.log("fulfilled");
@@ -204,9 +255,9 @@ var Ulam = (function(){
         var isWorker = !!self.importScripts;
         var result;
         if(!isWorker){
-            console.log("run this method at worker or inline worker by BlobBuilder.");
+            console.log("run this method at worker or inline worker.");
         }else{
-            result = UtilsPrime.getPrimeNumberArray;
+            result = UtilsPrime.getPrimeNumberArrayFromWorkerThread;
         }
         return result;
     }
@@ -217,13 +268,15 @@ var Ulam = (function(){
         var sideCounter = 2; // 現在の一辺の最長
         var currentSideCounter = 1; //現在の一辺の消費数
         var sideCounterRide = 1; // 2辺で方向を転換する
-        var l = primeArray.length;
+        var l = UtilsPrime.getRequestSize();
+        var currentPrimeCounter = 0; //現在探索中の素数の配列上の位置
 
         UtilsTimer.setStartDrawCanvas();
 
         for(var i=1;i<l;i++){
-            if(primeArray[i] === true){
+            if(primeArray[currentPrimeCounter] === i){
                 draw1pixelBlack(currentX, currentY);
+                currentPrimeCounter += 1;
             }
             var f2 = vecType % 4;
             if(f2 === 0){

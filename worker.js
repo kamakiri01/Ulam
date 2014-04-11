@@ -1,5 +1,5 @@
 importScripts("ulam.js");
-var getPrimeNumberArray = Ulam.initWorker();
+var getPrimeNumberArrayFromWorkerThread = Ulam.initWorker();
 var sendMessage = function(type, param){
     if(typeof param !== "undefined"){
         self.postMessage({
@@ -20,7 +20,10 @@ self.addEventListener("message", function(e){
         switch(data.type){
             case "requestPrimeNumberArray":
             var param = data.param;
-            var result = getPrimeNumberArray(param);
+            var currentTolerance = param.tolerance; //current worker id
+            var maxTolerance = param.maxTolerance; //max workers
+            var detectLength = param.detectLength;
+            var result = getPrimeNumberArrayFromWorkerThread(detectLength, currentTolerance, maxTolerance);
             sendMessage("returnPrimeNumberArray", result);
             break;
             throw "unknown event:" + data.type;
