@@ -59,12 +59,12 @@ var Ulam = (function(){
             var getRequestSize = function(){
                 return requestSize;
             }
-            var getPrimeNumberArrayFromMainThread = function(detectLength, resolve){
+            var getPrimeNumberArrayFromMainThread = function(detectLength, resolve, workerCount){
                 var result = [];
                 requestSize = detectLength;
                 UtilsTimer.setStartCalculationPrime();
                 if(window.Worker){
-                    result = getPrimeNumberArrayFromMainThreadEnableWorker(detectLength, resolve);
+                    result = getPrimeNumberArrayFromMainThreadEnableWorker(detectLength, resolve, workerCount);
                 }else{
                     result = getPrimeNumberArrayFromMainThreadDisableWorker(detectLength, resolve);
                     UtilsTimer.setEndCalculationPrime();
@@ -75,8 +75,7 @@ var Ulam = (function(){
                 var result = getPrimeNumberArrayEntity(detectLength, currentTolerance, maxTolerance);
                 return result;
             }
-            var getPrimeNumberArrayFromMainThreadEnableWorker = function(detectLength, resolve){
-                var workerCount = document.getElementById("form-text-workers").value || 1;
+            var getPrimeNumberArrayFromMainThreadEnableWorker = function(detectLength, resolve, workerCount){
                 var result = getPrimeNumberArrayByWorkers(detectLength, resolve, workerCount);
                 return result;
             }
@@ -234,12 +233,12 @@ var Ulam = (function(){
             getMeasureResult: getMeasureResult
         }
     })();
-    var init = function(requestSize){
+    var init = function(requestSize, workerCount){
         var sideLength = getSideLength(requestSize);
         CanvasEntity.setCanvasSideSize(sideLength);
         var primeNumberArray;
         var p1 = new Promise(function(resolve){
-                primeNumberArray = UtilsPrime.getPrimeNumberArrayFromMainThread(requestSize, resolve);
+                primeNumberArray = UtilsPrime.getPrimeNumberArrayFromMainThread(requestSize, resolve, workerCount);
         });
         p1.then(function fulfilled(primeNumberArray){
                 console.log("fulfilled");
@@ -249,6 +248,7 @@ var Ulam = (function(){
         }, 
         function rejected(e){
             console.log("rejected");
+            console.log(e);
         });
     }
     var initWorker = function(){
