@@ -7,16 +7,21 @@
     <script type="text/javascript">
         window.onload = function(){
             var s = document.getElementById("form-text-workers");
-            for(var i=0;i<16;i++){
+            var i = 0;
+            for(i=0;i<8;i++){
                 s.options[i] = new Option(i+1, i+1);
             }
+            for(var j=4;j<7;j++,i++){
+                s.options[i] = new Option(Math.pow(2, j), Math.pow(2, j));
+            }
+
         }
     </script>
 </head>
 <body>
 <div>
     <input type="text" value="10000" id="num" />
-    worker: <select  name="fontChoices" id="form-text-workers" size="1">
+    <select id="form-text-workers" size="1">
     <input type="button" value="run" id="run" onClick="Ulam.init(document.getElementById('num').value, document.getElementById('form-text-workers').value)" />
 </div>
     

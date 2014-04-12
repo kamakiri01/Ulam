@@ -245,6 +245,7 @@ var Ulam = (function(){
                 drawUlam(primeNumberArray);
                 var timeResult = UtilsTimer.getMeasureResult();
                 console.log(timeResult);
+                console.log(primeNumberArray);
         }, 
         function rejected(e){
             console.log("rejected");
