@@ -31,7 +31,7 @@ var Ulam = (function(){
             }
             var createCanvas = function(){
                 if(canvasSideSize === 0){
-                    console.log("canvasSide is undefined.");
+                    logError("canvasSide is undefined.");
                 }
                 var c = document.createElement("canvas");
                 document.body.appendChild(c);
@@ -122,7 +122,7 @@ var Ulam = (function(){
                         resolve(resultPrimeArray);
                     }
                 }
-                console.log("run worker");
+                logError("run worker");
                 var result = [];
                 var workers = [];
                 var l = workerCount || 1;
@@ -150,7 +150,7 @@ var Ulam = (function(){
                             callback(result);
                             break;
                             default:
-                            console.log("[Worker]unknown event type: " + data.type);
+                            logError("[Worker]unknown event type: " + data.type);
                         }
                 });
                 worker.postMessage({
@@ -241,22 +241,24 @@ var Ulam = (function(){
                 primeNumberArray = UtilsPrime.getPrimeNumberArrayFromMainThread(requestSize, resolve, workerCount);
         });
         p1.then(function fulfilled(primeNumberArray){
-                console.log("fulfilled");
+                logError("fulfilled");
                 drawUlam(primeNumberArray);
                 var timeResult = UtilsTimer.getMeasureResult();
-                console.log(timeResult);
+                logError(timeResult.prime);
                 console.log(primeNumberArray);
         }, 
         function rejected(e){
-            console.log("rejected");
-            console.log(e);
+            logError("rejected");
+            logError(e);
+
         });
     }
     var initWorker = function(){
         var isWorker = !!self.importScripts;
         var result;
         if(!isWorker){
-            console.log("run this method at worker or inline worker.");
+            logError("run this method at worker or inline worker.");
+
         }else{
             result = UtilsPrime.getPrimeNumberArrayFromWorkerThread;
         }
@@ -311,6 +313,13 @@ var Ulam = (function(){
         var ctx = CanvasEntity.getCanvas().getContext("2d");
         ctx.fillStyle = "black";
         ctx.fillRect(x, y, 1, 1);
+    }
+    var logError = function(str){
+        console.log(str);
+        var form = document.getElementById("form-log");
+        if(form){
+         form.value += str + "\n";
+        }
     }
     return {
         init: init,
