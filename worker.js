@@ -2,10 +2,12 @@ importScripts("ulam.js");
 var getPrimeNumberArrayFromWorkerThread = Ulam.initWorker();
 var sendMessage = function(type, param){
     if(typeof param !== "undefined"){
-        self.postMessage({
+        console.log(param);
+        var mes ={
                 type: type,
                 param: param
-        });
+        };
+        self.postMessage(mes); //dont user arraybuffer
     }else{
         self.postMessage({
                 type: type
@@ -15,18 +17,26 @@ var sendMessage = function(type, param){
 self.addEventListener("message", function(e){
         var data = e.data;
         if(!data.type){
-            throw "data.type no there !: " + data.type
-        };
+            throw "data.type no there !: " + data.type;
+        }
         switch(data.type){
             case "requestPrimeNumberArray":
             var param = data.param;
             var currentTolerance = param.tolerance; //current worker id
             var maxTolerance = param.maxTolerance; //max workers
             var detectLength = param.detectLength;
-            var result = getPrimeNumberArrayFromWorkerThread(detectLength, currentTolerance, maxTolerance);
+            var resultData = getPrimeNumberArrayFromWorkerThread(detectLength, currentTolerance, maxTolerance);
+            var result = new ArrayBuffer(resultData.length);
+            for(var i=0;i<resultData.length;i++){
+                result[i] = resultData[i];
+            }
+            result = resultData; //dont use arrayBuffer
             sendMessage("returnPrimeNumberArray", result);
+            self.close();
             break;
-            throw "unknown event:" + data.type;
+            default:
+            sendMessage("unknown event");
+            self.close();
         }
 });
 

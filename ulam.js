@@ -4,31 +4,32 @@ var Ulam = (function(){
             var canvas = null;
             var canvasSideSize = 0;
             var getIsCanvas = function(){
-                return isCanvas
-            }
+                return isCanvas;
+            };
             var setIsCanvas = function(param){
                 isCanvas = param;
-            }
+            };
             var getCanvas = function(){
+                var result;
                 if(isCanvas === true){
                     result = canvas;
                 }else{
                     result = createCanvas();
                 }
                 return result;
-            }
+            };
             var setCanvas = function(param){
                 canvas = param;
-            }
+            };
             var getCanvasSideSize = function(){
                 return canvasSideSize;
-            }
+            };
             var setCanvasSideSize = function(param){
                 canvasSideSize = Math.round(param);
                 if(isCanvas === true){
                     canvas = createCanvas();
                 }
-            }
+            };
             var createCanvas = function(){
                 if(canvasSideSize === 0){
                     logError("canvasSide is undefined.");
@@ -43,7 +44,7 @@ var Ulam = (function(){
                 setIsCanvas(true);
                 setCanvas(c);
                 return c;
-            }
+            };
             return {
                 getIsCanvas: getIsCanvas,
                 setIsCanvas: setIsCanvas,
@@ -51,14 +52,14 @@ var Ulam = (function(){
                 setCanvas: setCanvas,
                 getCanvasSideSize: getCanvasSideSize,
                 setCanvasSideSize: setCanvasSideSize
-            }
+            };
     })();
     var UtilsPrime = (function(){
             var requestSize = 0;
             var isWorker = !!self.importScripts;
             var getRequestSize = function(){
                 return requestSize;
-            }
+            };
             var getPrimeNumberArrayFromMainThread = function(detectLength, resolve, workerCount){
                 var result = [];
                 requestSize = detectLength;
@@ -70,41 +71,39 @@ var Ulam = (function(){
                     UtilsTimer.setEndCalculationPrime();
                 }
                 return result;
-            }
+            };
             var getPrimeNumberArrayFromWorkerThread = function(detectLength, currentTolerance, maxTolerance ){
                 var result = getPrimeNumberArrayEntity(detectLength, currentTolerance, maxTolerance);
                 return result;
-            }
+            };
             var getPrimeNumberArrayFromMainThreadEnableWorker = function(detectLength, resolve, workerCount){
                 var result = getPrimeNumberArrayByWorkers(detectLength, resolve, workerCount);
                 return result;
-            }
+            };
             var getPrimeNumberArrayFromMainThreadDisableWorker = function(detectLength, resolve){
                 var result = getPrimeNumberArrayEntity(detectLength, 1, 1);
                 UtilsTimer.setEndCalculationPrime();
                 resolve(result);
                 return result;
-            }
+            };
             var getPrimeNumberArrayEntity = function(detectLength, currentTolerance, maxTolerance){
                 var result = [];
+                var isOdd;
                 for(var i=1+currentTolerance;i<detectLength;i+=1*maxTolerance){
-                    if(i%2 === 0){
-                        //nothing
-                    }else if(i === 0 || i === 1 || i === 2 || i === 3){
+                    isOdd = !!(i & 1);
+                    if(i === 0 || i === 1 || i === 2 || i === 3){
                         result.push(i);
-                    }else{
+                    }else if(isOdd){
                         var judge = isPrimeObject(i);
                         if(judge.type === true){
                             result.push(i);
-                        }else{
-                            //nothing
                         }
                     }
                 }
                 return result;
-            }
+            };
             var getPrimeNumberArrayByWorkers = function(detectLength, resolve, workerCount){
-            var resultPrimeArray = [];
+                var resultPrimeArray = [];
                 var finishedWorker = 0;
                 var checkIdEndDetect = function(resultArray){
                     console.log("checkIdEndDetectworker" + finishedWorker);
@@ -121,9 +120,8 @@ var Ulam = (function(){
                         UtilsTimer.setEndCalculationPrime();
                         resolve(resultPrimeArray);
                     }
-                }
+                };
                 logError("run worker");
-                var result = [];
                 var workers = [];
                 var l = workerCount || 1;
                 for(var i=0;i<l;i++){
@@ -133,12 +131,12 @@ var Ulam = (function(){
                     for(var i=0;i<workers.detectLength;i++){
                         workers[i].terminate();
                     }
-                }
-            }
+                };
+            };
             var setUpWorkerDetectPrime = function(detectLength, tolerance, maxTolerance, callback){
                 var WORKER_FILENAME = "worker.js";
                 var worker = new Worker(WORKER_FILENAME);
-                worker.addEventListener('message', function(e){
+                worker.addEventListener("message", function(e){
                         var data = e.data;
                         if(!data.type){
                             throw "data.type no there !: " * data.type;
@@ -146,7 +144,7 @@ var Ulam = (function(){
                         switch(data.type){
                             case "returnPrimeNumberArray":
                             console.log("[Worker]calc is end.");
-                            result = data.param;
+                            var result = data.param;
                             callback(result);
                             break;
                             default:
@@ -162,14 +160,14 @@ var Ulam = (function(){
                         }
                 });
                 return worker;
-            }
+            };
             var isPrimeObject = function(n){
                 var type = true, 
                     factorArray = [];
                 if(n === 0 || n === 1 || n === 2){
                     type = true;
                 }
-                for(i=3;i<=n/2;i+=2){
+                for(var i=3;i<=n/2;i+=2){
                     if(n%i === 0){
                         type = false;
                         factorArray.push(i);
@@ -179,17 +177,17 @@ var Ulam = (function(){
                     type: type,
                     factor: factorArray
                 };
-            }
+            };
             if(isWorker){
                 return {
                     getRequestSize: getRequestSize,
                     getPrimeNumberArrayFromWorkerThread: getPrimeNumberArrayFromWorkerThread
-                }
+                };
             }else{
                 return {
                     getRequestSize: getRequestSize,
                     getPrimeNumberArrayFromMainThread: getPrimeNumberArrayFromMainThread
-                }
+                };
             }
     })();
     var UtilsTimer = (function(){
@@ -199,39 +197,39 @@ var Ulam = (function(){
         var endDrawCanvas = null;
         var setStartCalculationPrime = function(){
             startCalculationPrime = new Date();
-        }
+        };
         var setEndCalculationPrime = function(){
             endCalculationPrime = new Date();
-        }
+        };
         var setStartDrawCanvas = function(){
             startDrawCanvas = new Date();
-        }
+        };
         var setEndDrawCanvas = function(){
             endDrawCanvas = new Date();
-        }
+        };
         var measureCalculationPrime = function(){
             var result = endCalculationPrime - startCalculationPrime;
             return result;
-        }
+        };
         var measureDrawCanvas = function(){
             var result = endDrawCanvas - startDrawCanvas;
             return result;
-        }
+        };
         var getMeasureResult = function(){
             var primeResult = measureCalculationPrime();
             var drawResult = measureDrawCanvas();
             return {
                 prime: primeResult,
                 draw: drawResult
-            }
-        }
+            };
+        };
         return {
             setStartCalculationPrime: setStartCalculationPrime,
             setEndCalculationPrime: setEndCalculationPrime,
             setStartDrawCanvas: setStartDrawCanvas,
             setEndDrawCanvas: setEndDrawCanvas,
             getMeasureResult: getMeasureResult
-        }
+        };
     })();
     var init = function(requestSize, workerCount){
         var sideLength = getSideLength(requestSize);
@@ -252,7 +250,7 @@ var Ulam = (function(){
             logError(e);
 
         });
-    }
+    };
     var initWorker = function(){
         var isWorker = !!self.importScripts;
         var result;
@@ -263,7 +261,7 @@ var Ulam = (function(){
             result = UtilsPrime.getPrimeNumberArrayFromWorkerThread;
         }
         return result;
-    }
+    };
     var drawUlam = function(primeArray){
         var currentX = Math.round(CanvasEntity.getCanvasSideSize() / 2);
         var currentY = Math.round(CanvasEntity.getCanvasSideSize() / 2);
@@ -303,27 +301,27 @@ var Ulam = (function(){
             }
         }
         UtilsTimer.setEndDrawCanvas();
-    }
+    };
     var getSideLength = function(n){
         var result = Math.sqrt(n);
         result = Math.ceil(result);
         return result;
-    }
+    };
     var draw1pixelBlack = function(x, y){
         var ctx = CanvasEntity.getCanvas().getContext("2d");
         ctx.fillStyle = "black";
         ctx.fillRect(x, y, 1, 1);
-    }
+    };
     var logError = function(str){
         console.log(str);
         var form = document.getElementById("form-log");
         if(form){
          form.value += str + "\n";
         }
-    }
+    };
     return {
         init: init,
         initWorker: initWorker 
-    }
-})()
+    };
+})();
 
