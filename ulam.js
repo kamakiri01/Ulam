@@ -235,21 +235,19 @@ var Ulam = (function(){
         var sideLength = getSideLength(requestSize);
         CanvasEntity.setCanvasSideSize(sideLength);
         var primeNumberArray;
-        var p1 = new Promise(function(resolve){
-                primeNumberArray = UtilsPrime.getPrimeNumberArrayFromMainThread(requestSize, resolve, workerCount);
-        });
-        p1.then(function fulfilled(primeNumberArray){
+            var fetchArray  = function(){
+            return new Promise(function(done){
+                    primeNumberArray = UtilsPrime.getPrimeNumberArrayFromMainThread(requestSize, done, workerCount);
+            });
+        }
+        fetchArray().then(function fulfilled(data){
                 logError("fulfilled");
-                drawUlam(primeNumberArray);
+                drawUlam(data);
                 var timeResult = UtilsTimer.getMeasureResult();
                 logError(timeResult.prime);
-                console.log(primeNumberArray);
-        }, 
-        function rejected(e){
-            logError("rejected");
-            logError(e);
-
+                console.log(data);
         });
+        var p1 = fetchArray();
     };
     var initWorker = function(){
         var isWorker = !!self.importScripts;
